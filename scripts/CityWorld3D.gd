@@ -30,6 +30,7 @@ func _ready()->void:
  stretch=true
  mouse_filter=Control.MOUSE_FILTER_STOP
  view=SubViewport.new()
+ view.own_world_3d=true
  view.size=Vector2i(430,720)
  view.msaa_3d=Viewport.MSAA_2X
  view.render_target_update_mode=SubViewport.UPDATE_ALWAYS
