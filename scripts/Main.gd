@@ -370,15 +370,19 @@ func _lot_clicked(lot_id:String)->void:
  for x in game["world"][game["city"]]["lots"]:
   if x["id"]==lot_id:district=x;break
  if district.is_empty():return
- var dialog=ConfirmationDialog.new()
- dialog.title="Commercial lease · "+str(district["name"])
- dialog.dialog_text="Weekly rent: %s\nFootfall/week: %s\nDeposit (4 weeks): %s\n\nSign lease and create a café?" % [money(int(district["rent_cents"])),comma(int(district["footfall"])),money(int(district["rent_cents"])*4)]
- add_child(dialog)
- dialog.confirmed.connect(func():
-  var result=new_store(lot_id)
-  if result.begins_with("store-"):selected_store=result;active_screen="Stores";rebuild_ui()
-  else:show_message(result))
- dialog.popup_centered(Vector2i(360,330))
+ if lease_dialog==null:
+  lease_dialog=ConfirmationDialog.new()
+  add_child(lease_dialog)
+  lease_dialog.confirmed.connect(func():
+   var result=new_store(selected_lot)
+   if result.begins_with("store-"):
+    selected_store=result
+    active_screen="Stores"
+    rebuild_ui()
+   else:show_message(result))
+ lease_dialog.title="Commercial lease · "+str(district["name"])
+ lease_dialog.dialog_text="Weekly rent: %s\nFootfall/week: %s\nDeposit (4 weeks): %s\n\nSign lease and create a café?" % [money(int(district["rent_cents"])),comma(int(district["footfall"])),money(int(district["rent_cents"])*4)]
+ lease_dialog.popup_centered(Vector2i(360,330))
 
 func show_message(s:String)->void:
  if alert_dialog==null:
