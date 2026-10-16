@@ -282,6 +282,7 @@ func rebuild_ui()->void:
  ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  add_child(ui)
  var bg=ColorRect.new()
+ bg.mouse_filter=Control.MOUSE_FILTER_IGNORE
  bg.color=DARK
  bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  bg.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -294,6 +295,7 @@ func rebuild_ui()->void:
  scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  scene.visible=active_screen=="World"
  var overlay=VBoxContainer.new()
+ overlay.mouse_filter=Control.MOUSE_FILTER_IGNORE
  overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  overlay.add_theme_constant_override("separation",7)
  ui.add_child(overlay)
@@ -323,6 +325,7 @@ func rebuild_ui()->void:
   tabs.add_child(button)
  if active_screen=="World":
   var remaining=Control.new()
+  remaining.mouse_filter=Control.MOUSE_FILTER_IGNORE
   remaining.size_flags_vertical=Control.SIZE_EXPAND_FILL
   overlay.add_child(remaining)
  var panel=PanelContainer.new()
@@ -352,6 +355,7 @@ func rebuild_ui()->void:
  tools.add_child(btn("Save",func():save_game();status.text="Saved"))
  if active_screen=="World":
   var guide=PanelContainer.new()
+  guide.mouse_filter=Control.MOUSE_FILTER_IGNORE
   colorset(guide,DARK)
   guide.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
   guide.position=Vector2(0,138)
