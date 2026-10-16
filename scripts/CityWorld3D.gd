@@ -40,7 +40,7 @@ func _ready()->void:
  rebuild()
 
 func _fit()->void:
- if view:view.size=Vector2i(maxi(32,roundi(size.x)),maxi(32,roundi(size.y)))
+ if view:if not stretch:view.size=Vector2i(maxi(32,roundi(size.x)),maxi(32,roundi(size.y)))
 
 func material(tag:String,col:Color,metal:float=0.0,glow:bool=false)->StandardMaterial3D:
  if colors.has(tag):return colors[tag]
@@ -120,9 +120,9 @@ func rebuild()->void:
 
 func move_camera()->void:
  if camera==null:return
- camera.position=Vector3(61*zoom+pan.x,79*zoom,74*zoom+pan.y)
+ camera.position=Vector3(70*zoom+pan.x,88*zoom,86*zoom+pan.y)
  camera.look_at(Vector3(pan.x,0,pan.y))
- camera.size=89*zoom
+ camera.size=126*zoom
 
 func generate_city()->void:
  var meta:=Catalog.profile(city_id)
@@ -153,6 +153,9 @@ func generate_city()->void:
    box(world,Vector3(x,0.19,z),Vector3(9.1,0.30,9.1),sidewalks)
    if not owned_slot and ((i*11+j*17)%29==0):
     box(world,Vector3(x,0.36,z),Vector3(8.3,0.16,8.3),grass)
+    for t in range(4):
+     add_tree(Vector3(x+(-2.7 if t%2==0 else 2.7),0.50,z+(-2.7 if t<2 else 2.7)))
+    box(world,Vector3(x,0.53,z),Vector3(2.0,0.30,1.3),material("park_bench",Color("886f5b")))
     continue
    var lot:Dictionary={}
    if owned_slot and lots.size()==16:lot=lots[(j-4)*4+(i-4)]
@@ -160,13 +163,19 @@ func generate_city()->void:
    if style in ["dense","modern","desert"] and rng.randf()<0.35:height*=rng.randf_range(1.5,2.5)
    if style=="historic":height=minf(height,15)
    make_building(Vector3(x,0.38,z),height,rng,lot)
+   if ((i*5+j*11)%7==0):
+    add_tree(Vector3(x+3.8,0.35,z+3.8))
  for i in range(11):
   add_vehicle(i,rng)
  for i in range(16):
   add_pedestrian(i,rng)
 
 func make_building(at:Vector3,height:float,rng:RandomNumberGenerator,lot:Dictionary)->void:
+ var style:String=Catalog.profile(city_id).get("style","modern")
  var palette=[Color("c9c7b9"),Color("acb9b9"),Color("bdafa2"),Color("afb2b5"),Color("b7bbb0"),Color("a9aeaf")]
+ if style=="historic":palette=[Color("dbccae"),Color("d1bfaa"),Color("c4ab96"),Color("c8c1b2"),Color("b3b7ac"),Color("ddd2be")]
+ if style in ["dense","modern"]:palette=[Color("adb8c3"),Color("a6bbb9"),Color("d0cec5"),Color("9facb1"),Color("c6b6a9"),Color("c4c9c6")]
+ if style=="desert":palette=[Color("cebeaa"),Color("c4b9a9"),Color("cfc2b4"),Color("a9b5b6"),Color("d2c4b1"),Color("beb4a3")]
  var index:int=rng.randi_range(0,palette.size()-1)
  var facade=material("facade"+str(index),palette[index])
  var glass=material("windows",Color("59899a"),0.24)
@@ -177,6 +186,19 @@ func make_building(at:Vector3,height:float,rng:RandomNumberGenerator,lot:Diction
  var d:float=rng.randf_range(6.7,8.5)
  box(world,at+Vector3(0,h/2,0),Vector3(w,h,d),facade)
  box(world,at+Vector3(0,h+0.22,0),Vector3(w+0.32,0.3,d+0.34),roof)
+ if style=="historic":
+  box(world,at+Vector3(0,h+0.68,0),Vector3(w*0.82,0.72,d*0.84),material("mansard",Color("686e73")))
+  box(world,at+Vector3(0,0.30,0),Vector3(w+0.46,0.29,d+0.38),material("base",Color("7e827f")))
+ elif style in ["dense","modern"] and h>22:
+  box(world,at+Vector3(0,h+1.20,0),Vector3(w*0.51,1.9,d*0.54),facade)
+  box(world,at+Vector3(0,h+2.23,0),Vector3(w*0.57,0.18,d*0.60),roof)
+ elif style in ["coastal","tropical","waterfront"]:
+  box(world,at+Vector3(0,h+0.49,0),Vector3(w*0.70,0.32,d*0.65),material("roofdeck",Color("a4b6a6")))
+ for trim_level in range(1,mini(5,maxi(2,int(h/6.0)))):
+  var trim_height:float=float(trim_level)*h/float(mini(5,maxi(2,int(h/6.0))))
+  box(world,at+Vector3(0,trim_height,d/2+0.10),Vector3(w*0.94,0.09,0.16),roof)
+ if rng.randf()<0.35:
+  box(world,at+Vector3(w*0.33,h+0.59,d*0.18),Vector3(0.9,0.7,1.15),material("vent",Color("798283")))
  if rng.randf()<0.4:box(world,at+Vector3(0,h+0.53,0),Vector3(1.4,0.45,2.0),dark)
  var floors:int=mini(6,maxi(2,roundi(h/3.0)))
  for k in range(floors):
@@ -187,11 +209,19 @@ func make_building(at:Vector3,height:float,rng:RandomNumberGenerator,lot:Diction
  if not lot.is_empty():
   box(world,at+Vector3(0,1.2,d/2+0.16),Vector3(w*0.68,2.25,0.12),dark)
   box(world,at+Vector3(0,1.15,d/2+0.27),Vector3(w*0.57,1.58,0.1),glass)
+  box(world,at+Vector3(0,2.55,d/2+0.38),Vector3(w*0.72,0.23,0.75),material("canopy",Color("526870")))
   var status:String=lot["status"]
   var color=Color("a8dac3") if status=="vacant" else (Color("e3b771") if status=="leased" else Color("80929b"))
   var indicator:=material("pin"+status,color,0.12,true)
   box(world,at+Vector3(0,h+0.92,0),Vector3(1.5,1.5,1.5),indicator)
   flags[lot["id"]]=Vector3(at.x,0,at.z)
+
+func add_tree(at:Vector3)->void:
+ var trunk=material("tree_trunk",Color("675b4e"))
+ var foliage=material("tree_canopy",Color("497b5c"))
+ box(world,at+Vector3(0,0.9,0),Vector3(0.25,1.9,0.25),trunk)
+ box(world,at+Vector3(0,2.25,0),Vector3(1.50,1.8,1.45),foliage)
+ box(world,at+Vector3(0,3.0,0),Vector3(0.90,0.55,0.86),foliage)
 
 func add_vehicle(i:int,rng:RandomNumberGenerator)->void:
  var car:=Node3D.new()
