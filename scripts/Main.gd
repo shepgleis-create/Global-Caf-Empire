@@ -20,6 +20,8 @@ var body:VBoxContainer
 var active_screen="World"
 var selected_lot=""
 var selected_store=""
+var lease_dialog:ConfirmationDialog
+var alert_dialog:AcceptDialog
 var font_size:=17
 
 func _ready()->void:
@@ -379,11 +381,12 @@ func _lot_clicked(lot_id:String)->void:
  dialog.popup_centered(Vector2i(360,330))
 
 func show_message(s:String)->void:
- var a=AcceptDialog.new()
- a.title="Global Café Empire"
- a.dialog_text=s
- add_child(a)
- a.popup_centered()
+ if alert_dialog==null:
+  alert_dialog=AcceptDialog.new()
+  add_child(alert_dialog)
+ alert_dialog.title="Global Café Empire"
+ alert_dialog.dialog_text=s
+ alert_dialog.popup_centered()
 
 func show_stores()->void:
  body.add_child(txt("Your cafés",27,GOLD))
