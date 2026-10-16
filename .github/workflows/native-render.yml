@@ -7,6 +7,7 @@ on:
       - 'scripts/WorldCatalog.gd'
       - 'data/world_cities.txt'
       - 'tests/scene_preview.gd'
+      - 'tests/company_preview.gd'
       - 'scripts/Main.gd'
       - 'scripts/OfficeWorld3D.gd'
       - '.github/workflows/native-render.yml'
@@ -40,11 +41,17 @@ jobs:
           test -s captures/main-menu00000005.png
           mv captures/main-menu00000005.png captures/actual_game_main_menu.png
           rm -f captures/main-menu000000*.png captures/main-menu.wav
+      - name: Capture actual HQ / Executive screen
+        run: |
+          xvfb-run -a -s '-screen 0 480x960x24' /tmp/Godot_v4.4.1-stable_linux.x86_64 --rendering-method gl_compatibility --path . --resolution 430x932 --write-movie captures/hq-screen.png --fixed-fps 30 -s tests/company_preview.gd
+          test -s captures/hq-screen00000007.png
+          mv captures/hq-screen00000007.png captures/actual_game_hq_screen.png
+          rm -f captures/hq-screen000000*.png captures/hq-screen.wav
       - name: Publish raw unedited engine screenshot
         run: |
           git config user.name "global-cafe-render-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add captures/paris_real_godot_scene.png captures/actual_game_main_menu.png
+          git add captures/paris_real_godot_scene.png captures/actual_game_main_menu.png captures/actual_game_hq_screen.png
           if ! git diff --cached --quiet; then
             git commit -m 'chore: capture actual Godot city renderer for QA [skip ci]'
             git push
@@ -55,3 +62,4 @@ jobs:
           path: |
             captures/paris_real_godot_scene.png
             captures/actual_game_main_menu.png
+            captures/actual_game_hq_screen.png
