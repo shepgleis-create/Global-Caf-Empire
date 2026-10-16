@@ -1,0 +1,46 @@
+name: Native Godot city render verification
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/CityWorld3D.gd'
+      - 'scripts/WorldCatalog.gd'
+      - 'data/world_cities.txt'
+      - 'tests/scene_preview.gd'
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot and software OpenGL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libfontconfig1 libgl1-mesa-dri libx11-6
+          curl -fsSL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          chmod +x /tmp/Godot_v4.4.1-stable_linux.x86_64
+      - name: Validate world registry
+        run: |
+          /tmp/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --editor --quit
+      - name: Render genuine Godot 3D city scene
+        run: |
+          mkdir -p captures
+          xvfb-run -a -s '-screen 0 480x960x24' /tmp/Godot_v4.4.1-stable_linux.x86_64 --rendering-method gl_compatibility --path . --resolution 430x932 --write-movie captures/godot-frame.png --fixed-fps 30 -s tests/scene_preview.gd
+          test -s captures/godot-frame00000005.png
+          mv captures/godot-frame00000005.png captures/paris_real_godot_scene.png
+          rm -f captures/godot-frame000000*.png captures/godot-frame.wav
+      - name: Publish raw unedited engine screenshot
+        run: |
+          git config user.name "global-cafe-render-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add captures/paris_real_godot_scene.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: capture actual Godot city renderer for QA [skip ci]'
+            git push
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: real-godot-city-capture
+          path: captures/paris_real_godot_scene.png
