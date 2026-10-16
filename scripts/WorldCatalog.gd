@@ -3,7 +3,7 @@ class_name CafeWorldCatalog
 
 # Original city simulation profiles are data-driven. Every city has its own
 # persistent 16-parcel commercial market and 3D environment profile.
-const CSV_PATH = "res://data/world_cities.csv"
+const CSV_PATH = "res://data/world_cities.txt"
 const DISTRICTS = ["Central Promenade","Station Quarter","Market Street","Foundry Square",
 "Garden Walk","Exchange Plaza","Canal Court","University Gate","Terrace Row",
 "Grand Boulevard","Waterfront","Gallery Lane","Old Town","South Arcade",
