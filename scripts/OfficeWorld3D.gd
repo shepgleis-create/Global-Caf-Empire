@@ -19,6 +19,7 @@ var t:float=0.0
 func _ready()->void:
  stretch=true
  sub=SubViewport.new()
+ sub.own_world_3d=true
  sub.size=Vector2i(430,310)
  sub.transparent_bg=true
  sub.render_target_update_mode=SubViewport.UPDATE_ALWAYS
