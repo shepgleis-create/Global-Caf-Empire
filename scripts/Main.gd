@@ -122,7 +122,7 @@ func upgrade_store(id:String,kind:String)->String:
  match kind:
   "equipment":cost=690000
   "staff":cost=12000
-  "inventory":cost=175000
+  "inventory":cost=80500
   "open":
    if int(s["staff"])<2 or int(s["equipment"])<1 or int(s["inventory"])<500:
     return "Opening requires 2 staff, equipment, and at least 500 ingredient units."
@@ -252,7 +252,6 @@ func rebuild_ui()->void:
  ui.add_child(bg)
  scene=City.new()
  scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- scene.size=Vector2(430,932)
  scene.setup(game["world"][game["city"]]["lots"],game["stores"],game["city"])
  scene.lot_selected.connect(_lot_clicked)
  ui.add_child(scene)
