@@ -18,3 +18,5 @@ func finish()->void:
   await process_frame
  print("SCENE_PREVIEW_RENDERED")
  quit()
+
+# CI captures frames from the real Godot compatibility renderer.
