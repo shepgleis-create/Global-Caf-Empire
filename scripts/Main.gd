@@ -4,6 +4,7 @@ extends Control
 
 const Catalog=preload("res://scripts/WorldCatalog.gd")
 const City=preload("res://scripts/CityWorld3D.gd")
+const Office=preload("res://scripts/OfficeWorld3D.gd")
 const SAVE_PATH="user://global_cafe_empire_v1.json"
 const NAV=["World","Stores","Company","Atlas","Founder"]
 const DARK=Color("#12252b")
@@ -34,7 +35,9 @@ func start_game()->void:
   "city":"CHI","week":0,"cash":8500000,"capital":8500000,
   "world":Catalog.build_all(20261016,chicago),
   "stores":[],"journal":[],"history":[],"weekly":{},
-  "next_store_id":1,"founder_cash":0,"company_debt":0}
+  "next_store_id":1,"founder_cash":0,"company_debt":0,
+  "department":"Executive","technology_version":0,
+  "product_research":0,"executive_ops_hired":false}
  post("Initial founder capital",[{"account":"cash","debit":8500000,"credit":0},
   {"account":"paid_in_capital","debit":0,"credit":8500000}])
  save_game()
@@ -140,6 +143,24 @@ func upgrade_store(id:String,kind:String)->String:
  save_game()
  return "Purchased "+kind+"."
 
+func corporate_action(action:String)->String:
+ match action:
+  "technology":
+   if int(game.get("technology_version",0))>=6:return "Technology already at available maximum."
+   if not transact(1750000,"technology_research_expense","Build faster POS and mobile payment systems"):return "Insufficient cash."
+   game["technology_version"]=int(game.get("technology_version",0))+1
+  "product":
+   if int(game.get("product_research",0))>=6:return "Research pipeline is at the current limit."
+   if not transact(1250000,"product_research_expense","Research and test a higher-quality café menu"):return "Insufficient cash."
+   game["product_research"]=int(game.get("product_research",0))+1
+  "executive":
+   if bool(game.get("executive_ops_hired",false)):return "An operations executive already manages this portfolio."
+   if not transact(350000,"executive_recruitment","Recruit global operations director"):return "Insufficient cash."
+   game["executive_ops_hired"]=true
+  _:return "Unknown corporate action."
+ save_game()
+ return "Action completed. Its operating impact starts with future weekly turns."
+
 func change_price(id:String,delta:int)->void:
  var idx=store_index(id)
  if idx<0:return
@@ -166,11 +187,13 @@ func advance_week()->void:
   var available=int(s["inventory"])
   var daily_footfall=float(s["footfall"])/7.0
   var trend=0.85+0.15*sin(float(week)*0.31+float(i))
+  var technology_boost=1.0+0.04*float(game.get("technology_version",0))
+  var product_boost=1.0+0.045*float(game.get("product_research",0))
   var awareness=0.34+float(s["awareness"])/135.0
   var elasticity=pow(575.0/float(s["price"]),1.6)
   var saturation=1.0+0.13*max(0,int(current_rivals[s["city"]])-1)
-  var target=roundi(daily_footfall*0.30*7.0*trend*awareness*elasticity/saturation)
-  var max_capacity=int(s["equipment"])*1200
+  var target=roundi(daily_footfall*0.30*7.0*trend*awareness*elasticity*technology_boost*product_boost/saturation)
+  var max_capacity=roundi(float(s["equipment"])*1200.0*technology_boost)
   max_capacity=mini(max_capacity,int(s["staff"])*450)
   var served=clampi(target,0,mini(available,max_capacity))
   var lost=maxi(0,target-served)
@@ -201,6 +224,19 @@ func advance_week()->void:
   costs+=ingredient_cogs+overhead
   if lost>0:events.append("%s missed %s potential customers (capacity/stock)." % [s["name"],comma(lost)])
   game["stores"][i]=s
+ if bool(game.get("executive_ops_hired",false)):
+  var executive_salary=90000
+  post("Weekly operations executive salary",[{"account":"hq_payroll","debit":executive_salary,"credit":0},
+   {"account":"cash","debit":0,"credit":executive_salary}])
+  game["cash"]=int(game["cash"])-executive_salary
+  costs+=executive_salary
+  for k in range(game["stores"].size()):
+   var outlet=game["stores"][k]
+   if outlet["status"]!="open":continue
+   if int(outlet["inventory"])<450 and int(game["cash"])>=80500:
+    transact(80500,"inventory_assets","Executive-authorized supply replenishment "+outlet["id"])
+    outlet["inventory"]=int(outlet["inventory"])+700
+    game["stores"][k]=outlet
  game["weekly"]={"week":week,"sales":total_revenue,"costs":costs,
   "income":total_revenue-costs,"orders":total_orders,"cash":game["cash"],
   "events":events}
@@ -368,7 +404,32 @@ func show_stores()->void:
   body.add_child(HSeparator.new())
 
 func show_company()->void:
- body.add_child(txt("Corporate overview",27,GOLD))
+ body.add_child(txt("Corporate headquarters",27,GOLD))
+ var offices=HBoxContainer.new()
+ body.add_child(offices)
+ for d in ["Executive","Products","Technology","Finance"]:
+  var action=btn(d,func():game["department"]=d;rebuild_ui())
+  action.add_theme_font_size_override("font_size",12)
+  offices.add_child(action)
+ var dpt:String=str(game.get("department","Executive"))
+ var office=Office.new()
+ office.custom_minimum_size=Vector2(0,278)
+ office.set_department(dpt,9 if bool(game.get("executive_ops_hired",false)) else 5)
+ body.add_child(office)
+ match dpt:
+  "Products":
+   body.add_child(txt("Menu research level %d" % int(game.get("product_research",0))))
+   body.add_child(btn("Fund product research · $12,500",func():show_message(corporate_action("product"));rebuild_ui()))
+  "Technology":
+   body.add_child(txt("Mobile payment / POS version %d" % int(game.get("technology_version",0))))
+   body.add_child(btn("Upgrade technology · $17,500",func():show_message(corporate_action("technology"));rebuild_ui()))
+  "Executive":
+   body.add_child(txt("Operations director: %s" % ("Appointed" if bool(game.get("executive_ops_hired",false)) else "Vacant")))
+   body.add_child(btn("Hire operations director · $3,500",func():show_message(corporate_action("executive"));rebuild_ui()))
+  "Finance":
+   body.add_child(txt("Treasury, debt, statements and weekly operating reconciliation."))
+ body.add_child(HSeparator.new())
+ body.add_child(txt("Corporate overview",24,GOLD))
  body.add_child(txt("%s cash | %s cafés" % [money(int(game["cash"])),comma(game["stores"].size())]))
  body.add_child(txt("Company finances and weekly results derive from the game ledger, not UI display calculations.",14))
  if game["weekly"].is_empty():
