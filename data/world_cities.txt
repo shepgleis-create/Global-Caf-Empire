@@ -1,0 +1,65 @@
+id|name|country|environment|cost_index|temperature_c
+CHI|Chicago|United States|lakeshore|1.00|11
+NYC|New York|United States|dense|1.80|34
+SFO|San Francisco|United States|hills|1.78|19
+LAX|Los Angeles|United States|coastal|1.45|23
+SEA|Seattle|United States|harbor|1.28|22
+BOS|Boston|United States|historic|1.47|14
+MIA|Miami|United States|coastal|1.33|26
+AUS|Austin|United States|modern|1.09|23
+DEN|Denver|United States|mountain|1.18|11
+ATL|Atlanta|United States|modern|1.17|26
+YYZ|Toronto|Canada|lakeshore|1.46|15
+YVR|Vancouver|Canada|harbor|1.67|17
+MEX|Mexico City|Mexico|dense|0.78|19
+GDL|Guadalajara|Mexico|historic|0.63|22
+BOG|Bogotá|Colombia|mountain|0.66|14
+LIM|Lima|Peru|coastal|0.61|17
+GRU|São Paulo|Brazil|dense|0.78|22
+RIO|Rio de Janeiro|Brazil|coastal|0.80|29
+EZE|Buenos Aires|Argentina|historic|0.72|15
+LHR|London|United Kingdom|historic|1.74|13
+MAN|Manchester|United Kingdom|industrial|1.13|11
+PAR|Paris|France|historic|1.63|15
+BER|Berlin|Germany|modern|1.28|11
+MUC|Munich|Germany|historic|1.40|11
+AMS|Amsterdam|Netherlands|canals|1.57|12
+MAD|Madrid|Spain|historic|1.17|20
+BCN|Barcelona|Spain|coastal|1.30|22
+ROM|Rome|Italy|historic|1.22|21
+MIL|Milan|Italy|modern|1.35|17
+LIS|Lisbon|Portugal|hills|1.03|22
+CPH|Copenhagen|Denmark|harbor|1.52|9
+STO|Stockholm|Sweden|waterfront|1.49|7
+OSL|Oslo|Norway|harbor|1.71|5
+WAW|Warsaw|Poland|modern|0.92|10
+PRG|Prague|Czechia|historic|1.04|12
+IST|Istanbul|Türkiye|historic|0.79|19
+DXB|Dubai|United Arab Emirates|desert|1.60|31
+AUH|Abu Dhabi|United Arab Emirates|desert|1.56|33
+DOH|Doha|Qatar|desert|1.47|32
+CAI|Cairo|Egypt|desert|0.58|28
+CPT|Cape Town|South Africa|coastal|0.74|15
+JNB|Johannesburg|South Africa|modern|0.71|19
+NBO|Nairobi|Kenya|modern|0.61|21
+BOM|Mumbai|India|dense|0.68|28
+DEL|Delhi|India|dense|0.65|27
+BLR|Bengaluru|India|modern|0.74|23
+SIN|Singapore|Singapore|tropical|1.75|29
+KUL|Kuala Lumpur|Malaysia|tropical|0.86|30
+BKK|Bangkok|Thailand|tropical|0.86|31
+HAN|Hanoi|Vietnam|historic|0.62|23
+HCM|Ho Chi Minh City|Vietnam|dense|0.68|28
+HKG|Hong Kong|China|harbor|1.83|28
+SHA|Shanghai|China|dense|1.19|18
+PEK|Beijing|China|modern|1.22|12
+TPE|Taipei|Taiwan|dense|1.24|24
+TYO|Tokyo|Japan|dense|1.77|18
+OSA|Osaka|Japan|dense|1.40|21
+KYO|Kyoto|Japan|historic|1.29|17
+ICN|Seoul|South Korea|dense|1.31|16
+PUS|Busan|South Korea|harbor|1.06|18
+SYD|Sydney|Australia|harbor|1.65|18
+MEL|Melbourne|Australia|historic|1.48|14
+BNE|Brisbane|Australia|coastal|1.27|23
+AKL|Auckland|New Zealand|harbor|1.39|15
