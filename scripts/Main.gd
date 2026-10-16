@@ -265,13 +265,18 @@ func rebuild_ui()->void:
  colorset(top,DARK)
  top.custom_minimum_size=Vector2(0,82)
  overlay.add_child(top)
- var header=HBoxContainer.new()
- header.add_theme_constant_override("separation",6)
+ var header=VBoxContainer.new()
+ header.add_theme_constant_override("separation",0)
  top.add_child(header)
- var bname=game["company"]
- header.add_child(txt(str(bname),21))
- header.add_spacer(false)
- status=txt("%s · Week %d" % [money(int(game["cash"])),int(game["week"])],14,GOLD)
+ var bname=txt(str(game["company"]),20)
+ bname.autowrap_mode=TextServer.AUTOWRAP_OFF
+ bname.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+ bname.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ header.add_child(bname)
+ status=txt("%s · Week %d" % [money(int(game["cash"])),int(game["week"])],16,GOLD)
+ status.autowrap_mode=TextServer.AUTOWRAP_OFF
+ status.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+ status.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  header.add_child(status)
  var tabs=HBoxContainer.new()
  tabs.add_theme_constant_override("separation",2)
