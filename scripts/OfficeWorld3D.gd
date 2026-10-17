@@ -71,10 +71,10 @@ func rebuild()->void:
  floor_root.add_child(sun)
  camera=Camera3D.new()
  camera.projection=Camera3D.PROJECTION_ORTHOGONAL
- camera.size=17.5
- camera.position=Vector3(17,20,20)
+ camera.size=11.8
+ camera.position=Vector3(14,17,16)
  floor_root.add_child(camera)
- camera.look_at_from_position(Vector3(17,20,20),Vector3(0,0.5,0))
+ camera.look_at_from_position(Vector3(14,17,16),Vector3(0,0.5,0))
  camera.current=true
  var profile:Dictionary=offices.get(department,offices["Executive"])
  var floor_material=mat(profile["floor"])
@@ -91,10 +91,13 @@ func rebuild()->void:
   part(floor_root,Vector3(-4.1+i*4.05,3.1,-4.82),Vector3(2.8,1.45,0.10),glass)
  for i in range(2):
   part(floor_root,Vector3(-6.38,3.1,-2.8+i*4.5),Vector3(0.10,1.5,2.6),glass)
- var stations=maxi(2,mini(10,seats))
+ var stations=maxi(2,mini(9,seats))
+ if department=="Executive":stations=mini(stations,3)
+ elif department=="Products":stations=mini(stations,5)
+ elif department=="Technology":stations=mini(stations,6)
  for i in range(stations):
-  var x:float=-3.9+float(i%3)*3.8
-  var z:float=-2.1+float(int(i/3))*2.1
+  var x:float=-4.3+float(i%2)*3.3
+  var z:float=-2.5+float(int(i/2))*2.6
   part(floor_root,Vector3(x,0.9,z),Vector3(2.25,0.14,0.78),desk_material)
   part(floor_root,Vector3(x,0.47,z),Vector3(0.13,0.85,0.45),wood)
   part(floor_root,Vector3(x,1.32,z-0.20),Vector3(0.75,0.68,0.10),screen_material)
@@ -110,12 +113,27 @@ func rebuild()->void:
   part(floor_root,Vector3(px,0.5,3.6),Vector3(0.56,1.0,0.55),wood)
   part(floor_root,Vector3(px,1.35,3.6),Vector3(1.1,1.4,1.0),plant)
  if department=="Executive":
-  part(floor_root,Vector3(3.5,0.85,-3.8),Vector3(4.4,0.16,1.4),wood)
- if department=="Products":
-  part(floor_root,Vector3(4.0,0.95,2.9),Vector3(3.2,0.15,1.55),desk_material)
- if department=="Technology":
-  for k in range(2):
-   part(floor_root,Vector3(5.7,1.6,-2.8+k*1.65),Vector3(0.9,3,1.3),wood)
+  part(floor_root,Vector3(2.9,0.83,-1.3),Vector3(3.2,0.22,4.9),wood)
+  for chair in range(6):
+   var px:float=1.1 if chair%2==0 else 4.7
+   var pz:float=-3.0+float(int(chair/2))*1.7
+   part(floor_root,Vector3(px,0.68,pz),Vector3(0.70,0.16,0.68),desk_material)
+   part(floor_root,Vector3(px,1.02,pz+0.35),Vector3(0.70,0.73,0.13),desk_material)
+  part(floor_root,Vector3(3.8,2.8,-4.78),Vector3(2.4,1.2,0.11),screen_material)
+ elif department=="Finance":
+  for terminal in range(3):
+   part(floor_root,Vector3(2.1+float(terminal)*1.25,2.8,-4.82),Vector3(1.0,0.85,0.1),screen_material)
+ elif department=="Products":
+  part(floor_root,Vector3(3.7,0.92,1.9),Vector3(4.3,0.17,2.1),desk_material)
+  for cup in range(5):
+   part(floor_root,Vector3(2.0+float(cup)*0.77,1.10,1.75),Vector3(0.22,0.31,0.22),mat("#f2e9d5"))
+  part(floor_root,Vector3(3.8,2.2,-4.77),Vector3(2.5,1.5,0.14),screen_material)
+ elif department=="Technology":
+  for k in range(3):
+   var tz:float=-3.1+float(k)*2.1
+   part(floor_root,Vector3(5.2,1.75,tz),Vector3(1.25,3.5,1.25),wood)
+   for light in range(3):
+    part(floor_root,Vector3(5.86,0.90+float(light)*0.8,tz),Vector3(0.08,0.10,0.8),screen_material)
 
 func _process(delta:float)->void:
  t+=delta
