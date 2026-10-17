@@ -145,6 +145,36 @@ func upgrade_store(id:String,kind:String)->String:
  save_game()
  return "Purchased "+kind+"."
 
+func finance_snapshot()->Dictionary:
+ # Single source of truth: every amount derives from balanced journal rows.
+ # Credit balances on revenue, contributed equity and debt are negated here.
+ var balances:Dictionary={}
+ for posting in game["journal"]:
+  for line in posting["rows"]:
+   var account:String=line["account"]
+   balances[account]=int(balances.get(account,0))+int(line["debit"])-int(line["credit"])
+ var operating_expenses=0
+ var revenue=0
+ var asset_total=0
+ var liabilities=0
+ for account in balances.keys():
+  var value:int=balances[account]
+  if account in ["cash","prepaid_rent","equipment_assets","inventory_assets"]:
+   asset_total+=value
+  elif account in ["company_debt","loans_payable"]:
+   liabilities-=value
+  elif account=="store_revenue":
+   revenue-=value
+  elif account in ["operating_expense","cost_of_goods_sold","hq_payroll","technology_research_expense","product_research_expense","executive_recruitment","recruiting_expense"]:
+   operating_expenses+=value
+ var earned=revenue-operating_expenses
+ var contributed=-int(balances.get("paid_in_capital",0))
+ var equity=contributed+earned
+ return {"accounts":balances,"revenue":revenue,"expenses":operating_expenses,
+  "income":earned,"assets":asset_total,"liabilities":liabilities,
+  "equity":equity,"balanced":asset_total==liabilities+equity,
+  "cash":int(balances.get("cash",0))}
+
 func corporate_action(action:String)->String:
  match action:
   "technology":
@@ -289,13 +319,16 @@ func rebuild_ui()->void:
  bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  bg.mouse_filter=Control.MOUSE_FILTER_IGNORE
  ui.add_child(bg)
- scene=City.new()
- scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- scene.setup(game["world"][game["city"]]["lots"],game["stores"],game["city"])
- scene.lot_selected.connect(_lot_clicked)
- ui.add_child(scene)
- scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
- scene.visible=active_screen=="World"
+ # Only instantiate the costly 3D city while the World tab is visible.
+ # HQ, financial reports and stores no longer render a hidden second 3D world.
+ scene=null
+ if active_screen=="World":
+  scene=City.new()
+  scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  scene.setup(game["world"][game["city"]]["lots"],game["stores"],game["city"])
+  scene.lot_selected.connect(_lot_clicked)
+  ui.add_child(scene)
+  scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  var overlay=VBoxContainer.new()
  overlay.mouse_filter=Control.MOUSE_FILTER_IGNORE
  overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -438,7 +471,20 @@ func show_company()->void:
    body.add_child(txt("Operations director: %s" % ("Appointed" if bool(game.get("executive_ops_hired",false)) else "Vacant")))
    body.add_child(btn("Hire operations director · $3,500",func():show_message(corporate_action("executive"));rebuild_ui()))
   "Finance":
-   body.add_child(txt("Treasury, debt, statements and weekly operating reconciliation."))
+   var financial=finance_snapshot()
+   body.add_child(txt("Lifetime financial statements",20,GOLD))
+   body.add_child(txt("Cumulative revenue        "+money(int(financial["revenue"]))))
+   body.add_child(txt("Cumulative expenses       "+money(int(financial["expenses"]))))
+   body.add_child(txt("Retained earnings         "+money(int(financial["income"]))))
+   body.add_child(HSeparator.new())
+   body.add_child(txt("Assets                    "+money(int(financial["assets"]))))
+   body.add_child(txt("Liabilities               "+money(int(financial["liabilities"]))))
+   body.add_child(txt("Shareholder equity        "+money(int(financial["equity"]))))
+   body.add_child(txt("Balance sheet: "+("Reconciled" if financial["balanced"] else "CHECK REQUIRED"),15,GOLD))
+   body.add_child(txt("Cash                      "+money(int(financial["cash"]))))
+   body.add_child(txt("Equipment book value      "+money(int(financial["accounts"].get("equipment_assets",0)))))
+   body.add_child(txt("Bean inventory            "+money(int(financial["accounts"].get("inventory_assets",0)))))
+   body.add_child(txt("Lease deposits            "+money(int(financial["accounts"].get("prepaid_rent",0)))))
  body.add_child(HSeparator.new())
  body.add_child(txt("Corporate overview",24,GOLD))
  body.add_child(txt("%s cash | %s cafés" % [money(int(game["cash"])),comma(game["stores"].size())]))
