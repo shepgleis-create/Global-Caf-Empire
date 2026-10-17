@@ -135,13 +135,31 @@ func generate_city()->void:
  var lane=material("stripe",Color("e3cba5"))
  var grass=material("park",Color("567e63"))
  var water=material("water",Color("3d8792"),0.3)
- var earth=material("earth",Color("768778"))
+ var ground_color=Color("768778")
+ if style=="desert":ground_color=Color("b6a78b")
+ elif style in ["historic","canals"]:ground_color=Color("9a998e")
+ elif style=="mountain":ground_color=Color("667d74")
+ var earth=material("earth",ground_color)
+ var stone=material("pedestrian_plaza",Color("d1c7ad"))
+ var crossing=material("pedestrian_crossing",Color("e5e3d9"))
+ var cycle=material("cycle_lane",Color("698c83"))
+ var foliage=material("street_trees",Color("608e6b"))
+ var riveredge=material("riveredge",Color("c5b9a5"))
  box(world,Vector3(0,-0.5,0),Vector3(160,0.9,160),earth)
  box(world,Vector3(0,0,0),Vector3(147,0.18,147),asphalt)
+ # Original multi-modal avenues and crossings distinguish the world map from a tile grid.
+ for avenue in [-1,1]:
+  box(world,Vector3(avenue*5.7,0.11,0),Vector3(0.22,0.02,140),cycle)
  for i in range(13):
   var k:float=(float(i)-6.0)*11.4+5.7
   box(world,Vector3(k,0.10,0),Vector3(0.14,0.02,143),lane)
   box(world,Vector3(0,0.10,k),Vector3(143,0.02,0.14),lane)
+ for i in range(1,12,2):
+  for j in range(1,12,3):
+   var cx:float=(float(i)-6)*11.4+5.7
+   var cz:float=(float(j)-6)*11.4+5.7
+   for c in range(4):
+    box(world,Vector3(cx-1.1+float(c)*0.70,0.125,cz),Vector3(0.36,0.018,2.5),crossing)
  for i in range(12):
   for j in range(12):
    var x:float=(float(i)-5.5)*11.4
@@ -149,11 +167,20 @@ func generate_city()->void:
    var owned_slot:bool=i>=4 and i<8 and j>=4 and j<8
    var sea:bool=(style in ["harbor","coastal","lakeshore","canals","waterfront"]) and (i==0 or (style=="canals" and i==10))
    if sea:
-    box(world,Vector3(x,0.06,z),Vector3(8.8,0.12,8.8),water)
+    box(world,Vector3(x,0.06,z),Vector3(9.1,0.12,9.1),water)
+    if j%3==0:
+     box(world,Vector3(x+3.4,0.23,z),Vector3(1.1,0.32,8.4),riveredge)
+     if j%6==0:
+      box(world,Vector3(x+1.0,0.28,z),Vector3(5.2,0.20,1.35),riveredge)
     continue
    box(world,Vector3(x,0.19,z),Vector3(9.1,0.30,9.1),sidewalks)
-   if not owned_slot and ((i*11+j*17)%29==0):
-    box(world,Vector3(x,0.36,z),Vector3(8.3,0.16,8.3),grass)
+   var is_plaza:bool=not owned_slot and ((i*13+j*19+abs(city_id.hash())%17)%27==0)
+   if is_plaza:
+    box(world,Vector3(x,0.33,z),Vector3(8.3,0.16,8.3),stone)
+    box(world,Vector3(x,0.47,z),Vector3(6.0,0.10,5.6),grass)
+    if j%2==0:
+     box(world,Vector3(x,0.55,z),Vector3(1.3,0.16,1.3),riveredge)
+     box(world,Vector3(x,1.23,z),Vector3(0.46,1.38,0.46),foliage)
     for t in range(4):
      add_tree(Vector3(x+(-2.7 if t%2==0 else 2.7),0.50,z+(-2.7 if t<2 else 2.7)))
     box(world,Vector3(x,0.53,z),Vector3(2.0,0.30,1.3),material("park_bench",Color("886f5b")))
@@ -163,6 +190,12 @@ func generate_city()->void:
    var height:float=rng.randf_range(8,21)
    if style in ["dense","modern","desert"] and rng.randf()<0.35:height*=rng.randf_range(1.5,2.5)
    if style=="historic":height=minf(height,15)
+   elif style=="industrial":height=rng.randf_range(6,13)
+   elif style=="tropical":height=rng.randf_range(8,19)
+   elif style=="mountain":height=rng.randf_range(5,16)
+   if style in ["dense","modern"] and (i-5)*(i-5)+(j-5)*(j-5)<15 and not owned_slot:
+    height*=1.30
+   if style=="desert" and rng.randf()<0.12:height*=1.65
    make_building(Vector3(x,0.38,z),height,rng,lot)
    if ((i*5+j*11)%7==0):
     add_tree(Vector3(x+3.8,0.35,z+3.8))
