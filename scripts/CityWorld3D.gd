@@ -247,7 +247,22 @@ func make_building(at:Vector3,height:float,rng:RandomNumberGenerator,lot:Diction
   var status:String=lot["status"]
   var color=Color("a8dac3") if status=="vacant" else (Color("e3b771") if status=="leased" else Color("80929b"))
   var indicator:=material("pin"+status,color,0.12,true)
-  box(world,at+Vector3(0,h+0.92,0),Vector3(1.5,1.5,1.5),indicator)
+  # A recognizable original illuminated property sign, not a bare debug cube.
+  box(world,at+Vector3(0,h+0.85,0),Vector3(0.15,1.75,0.15),dark)
+  box(world,at+Vector3(0,h+1.85,0),Vector3(2.0,0.85,0.30),indicator)
+  var label=Label3D.new()
+  label.text="AVAILABLE" if status=="vacant" else ("YOUR CAFÉ" if status=="leased" else "OCCUPIED")
+  label.font_size=40
+  label.pixel_size=0.012
+  label.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+  label.modulate=Color("132b31")
+  label.position=at+Vector3(0,h+2.7,0)
+  world.add_child(label)
+  if status=="leased":
+   # Store ownership is visible in the physical streetscape.
+   var branding=material("owned_awning",Color("bb8743"),0.05)
+   box(world,at+Vector3(0,2.54,d/2+0.42),Vector3(w*0.77,0.22,0.83),branding)
+   box(world,at+Vector3(0,2.29,d/2+0.80),Vector3(w*0.56,0.32,0.09),branding)
   flags[lot["id"]]=Vector3(at.x,0,at.z)
 
 func add_tree(at:Vector3)->void:
