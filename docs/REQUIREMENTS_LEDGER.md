@@ -1,5 +1,16 @@
 # GLOBAL CAFÉ EMPIRE — ENGINEERING LEDGER
-Updated 2026-10-16. This ledger is an audit of running code, not a list of promises. Reference images are not shipped assets.
+Updated 2026-10-17. This ledger is an audit of running code, not a list of promises. Reference images are not shipped assets.
+
+## 2026-10-17 — Verified native-engine development increment
+
+- **3D city environment**: Regional ground treatments; pedestrian plazas, waterfront piers, avenue cycling lanes, pedestrian crossings, civic planting, distinctive skyline height rules and physical leased-store awnings. This is geometric Godot 3D, not generated pictures. Full unique hand-authored cities and photorealism are not achieved.
+- **3D headquarters**: Enlarged camera scale for portrait rendering. Executive board meeting table and chairs, Product beverage tasting bench, IT server racks, Finance research monitors; different workstation counts per department. Scene assets remain stylized procedural geometry and need substantial art passes.
+- **Financials**: Company/Finance panel draws cumulative revenue, expenses, retained earnings, assets, liabilities, contributed equity, inventory, equipment and cash from the balanced journal; invariants checked for 30 simulated weeks.
+- **Actual governance actions**: Quarterly board meeting (13-week cooldown) can approve a Growth campaign, employee training, or cash preservation. Spending is posted once to the journal; awareness/service changes feed the weekly demand function. Decisions and history persist through saves.
+- **Mobile and performance**: Godot world is instantiated only while World tab is active; tapping 3D lots uses correct stretched viewport coordinate mapping.
+- **Tests**: core_gameplay_test, finance_hq_test, board_meeting_test and map_touch_test run headlessly using Godot 4.4.1; CI gates actual Godot unedited scene capture on test success.
+- **Known limitations**: not validated in physical iPhone Safari; cities still share a procedural block grammar rather than fully independent street grids; advanced board governance, hiring, finance drilldowns and player-configurable setup remain unfinished. Existing save structure is preserved with optional new board fields defaulted by .get().
+- **Delivery**: tracked on the independent GitHub repo and Git-linked Vercel project. Vercel READY alone does not certify actual mobile hardware performance.
 
 ## Evidence gates
 - **TESTED** means Godot 4.4.1 executed the relevant test with passing assertions.
