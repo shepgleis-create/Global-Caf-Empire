@@ -319,7 +319,10 @@ func _touch(event:InputEvent)->void:
 
 func select_at(position:Vector2)->void:
  if camera==null:return
- var point=Plane(Vector3.UP,0).intersects_ray(camera.project_ray_origin(position),camera.project_ray_normal(position))
+ # SubViewport uses a lower fixed resolution than its portrait container.
+ # Convert screen pixels to internal pixels before ray projection (critical on iPhone).
+ var viewport_position=position*Vector2(view.size)/size
+ var point=Plane(Vector3.UP,0).intersects_ray(camera.project_ray_origin(viewport_position),camera.project_ray_normal(viewport_position))
  if point==null:return
  var at:Vector3=point
  for id in flags:
