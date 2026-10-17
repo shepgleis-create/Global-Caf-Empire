@@ -8,6 +8,8 @@ on:
       - 'data/world_cities.txt'
       - 'tests/scene_preview.gd'
       - 'tests/company_preview.gd'
+      - 'tests/finance_hq_test.gd'
+      - 'tests/board_meeting_test.gd'
       - 'scripts/Main.gd'
       - 'scripts/OfficeWorld3D.gd'
       - '.github/workflows/native-render.yml'
@@ -28,6 +30,13 @@ jobs:
       - name: Validate world registry
         run: |
           /tmp/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --editor --quit
+      - name: Test actual café gameplay and save compatibility
+        run: |
+          /tmp/Godot_v4.4.1-stable_linux.x86_64 --headless --path . -s tests/core_gameplay_test.gd
+      - name: Test finance, HQ departments and quarter governance
+        run: |
+          /tmp/Godot_v4.4.1-stable_linux.x86_64 --headless --path . -s tests/finance_hq_test.gd
+          /tmp/Godot_v4.4.1-stable_linux.x86_64 --headless --path . -s tests/board_meeting_test.gd
       - name: Render genuine Godot 3D city scene
         run: |
           mkdir -p captures
