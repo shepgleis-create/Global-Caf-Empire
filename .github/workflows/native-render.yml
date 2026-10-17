@@ -63,7 +63,14 @@ jobs:
           git add captures/paris_real_godot_scene.png captures/actual_game_main_menu.png captures/actual_game_hq_screen.png
           if ! git diff --cached --quiet; then
             git commit -m 'chore: capture actual Godot city renderer for QA [skip ci]'
-            git push
+            # A newer development commit may have arrived while rendering.
+            # The artifact is still valid; never fail QA on a non-fast-forward.
+            remote_head="$(git ls-remote origin refs/heads/main | cut -f1)"
+            if [ "$remote_head" = "$GITHUB_SHA" ]; then
+              git push || echo "A newer commit arrived; screenshots remain in the workflow artifact."
+            else
+              echo "Skip stale image commit; newer main branch changes already exist."
+            fi
           fi
       - uses: actions/upload-artifact@v4
         with:
