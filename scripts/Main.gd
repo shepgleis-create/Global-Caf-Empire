@@ -39,7 +39,8 @@ func start_game()->void:
   "stores":[],"journal":[],"history":[],"weekly":{},
   "next_store_id":1,"founder_cash":0,"company_debt":0,
   "department":"Executive","technology_version":0,
-  "product_research":0,"executive_ops_hired":false}
+  "product_research":0,"executive_ops_hired":false,
+  "last_board_meeting_week":-13,"board_policy":"Cash preservation","board_history":[]}
  post("Initial founder capital",[{"account":"cash","debit":8500000,"credit":0},
   {"account":"paid_in_capital","debit":0,"credit":8500000}])
  save_game()
@@ -165,7 +166,7 @@ func finance_snapshot()->Dictionary:
    liabilities-=value
   elif account=="store_revenue":
    revenue-=value
-  elif account in ["operating_expense","cost_of_goods_sold","hq_payroll","technology_research_expense","product_research_expense","executive_recruitment","recruiting_expense"]:
+  elif account in ["operating_expense","cost_of_goods_sold","hq_payroll","technology_research_expense","product_research_expense","executive_recruitment","recruiting_expense","marketing_expense","staff_training_expense"]:
    operating_expenses+=value
  var earned=revenue-operating_expenses
  var contributed=-int(balances.get("paid_in_capital",0))
@@ -192,6 +193,44 @@ func corporate_action(action:String)->String:
   _:return "Unknown corporate action."
  save_game()
  return "Action completed. Its operating impact starts with future weekly turns."
+
+func hold_board_meeting(policy:String)->String:
+ var current_week:int=int(game["week"])
+ var last_week:int=int(game.get("last_board_meeting_week",-13))
+ if current_week-last_week<13:
+  return "Board decisions are available every 13 game weeks. Next review: week %d." % (last_week+13)
+ var running:Array=[]
+ for i in range(game["stores"].size()):
+  if game["stores"][i]["status"]=="open":running.append(i)
+ if running.is_empty():return "Open at least one operating café before holding a board meeting."
+ var expense=0
+ var expense_account=""
+ match policy:
+  "Growth campaign":
+   expense=running.size()*180000
+   expense_account="marketing_expense"
+  "Employee development":
+   expense=running.size()*95000
+   expense_account="staff_training_expense"
+  "Cash preservation":
+   pass
+  _:
+   return "Invalid board motion."
+ if expense>0 and not transact(expense,expense_account,"Board-authorized "+policy):
+  return "Board motion declined: not enough available corporate cash."
+ for i in running:
+  var store:Dictionary=game["stores"][i]
+  if policy=="Growth campaign":
+   store["awareness"]=clampi(int(store["awareness"])+6,0,95)
+  elif policy=="Employee development":
+   store["rating"]=clampi(int(store["rating"])+5,20,95)
+  game["stores"][i]=store
+ game["last_board_meeting_week"]=current_week
+ game["board_policy"]=policy
+ if not game.has("board_history"):game["board_history"]=[]
+ game["board_history"].append({"week":current_week,"policy":policy,"cost":expense,"stores":running.size()})
+ save_game()
+ return "Board motion approved: %s. Cost %s. Effects applied to %d cafés." % [policy,money(expense),running.size()]
 
 func change_price(id:String,delta:int)->void:
  var idx=store_index(id)
@@ -222,9 +261,10 @@ func advance_week()->void:
   var technology_boost=1.0+0.04*float(game.get("technology_version",0))
   var product_boost=1.0+0.045*float(game.get("product_research",0))
   var awareness=0.34+float(s["awareness"])/135.0
+  var service_factor=0.70+float(s["rating"])/230.0
   var elasticity=pow(575.0/float(s["price"]),1.6)
   var saturation=1.0+0.13*max(0,int(current_rivals[s["city"]])-1)
-  var target=roundi(daily_footfall*0.30*7.0*trend*awareness*elasticity*technology_boost*product_boost/saturation)
+  var target=roundi(daily_footfall*0.30*7.0*trend*awareness*service_factor*elasticity*technology_boost*product_boost/saturation)
   var max_capacity=roundi(float(s["equipment"])*1200.0*technology_boost)
   max_capacity=mini(max_capacity,int(s["staff"])*450)
   var served=clampi(target,0,mini(available,max_capacity))
@@ -470,6 +510,12 @@ func show_company()->void:
   "Executive":
    body.add_child(txt("Operations director: %s" % ("Appointed" if bool(game.get("executive_ops_hired",false)) else "Vacant")))
    body.add_child(btn("Hire operations director · $3,500",func():show_message(corporate_action("executive"));rebuild_ui()))
+   body.add_child(txt("Quarterly board meeting",20,GOLD))
+   var last_review:int=int(game.get("last_board_meeting_week",-13))
+   body.add_child(txt("Current policy: %s · Next meeting week %d" % [game.get("board_policy","Cash preservation"),last_review+13],14))
+   body.add_child(btn("Approve growth campaign · $1,800 per café",func():show_message(hold_board_meeting("Growth campaign"));rebuild_ui()))
+   body.add_child(btn("Invest in staff training · $950 per café",func():show_message(hold_board_meeting("Employee development"));rebuild_ui()))
+   body.add_child(btn("Preserve cash · no spending",func():show_message(hold_board_meeting("Cash preservation"));rebuild_ui()))
   "Finance":
    var financial=finance_snapshot()
    body.add_child(txt("Lifetime financial statements",20,GOLD))
